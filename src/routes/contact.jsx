@@ -9,7 +9,6 @@ export async function loader({ params }) {
 
 export async function action({ request, params }) {
   const formData = await request.formData();
-  console.log(formData.get("favorite"));
   return updateContact(params.contactId, {
     favorite: formData.get("favorite") === "true",
   });
