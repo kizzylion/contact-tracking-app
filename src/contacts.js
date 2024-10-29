@@ -4,7 +4,15 @@ import sortBy from "sort-by";
 
 export async function getContacts(query) {
   await fakeNetwork(`getContacts:${query}`);
-  let contacts = await localforage.getItem("contacts");
+  let contacts;
+  try {
+    contacts = await localforage.getItem("contacts");
+  } catch (error) {
+    console.error("LocalForage error:", error);
+    // Fallback to localStorage if localforage fails
+    const storedContacts = localStorage.getItem("contacts");
+    contacts = storedContacts ? JSON.parse(storedContacts) : [];
+  }
   if (!contacts) contacts = [];
   if (query) {
     contacts = matchSorter(contacts, query, { keys: ["first", "last"] });
@@ -24,14 +32,30 @@ export async function createContact() {
 
 export async function getContact(id) {
   await fakeNetwork(`contact:${id}`);
-  let contacts = await localforage.getItem("contacts");
+  let contacts;
+  try {
+    contacts = await localforage.getItem("contacts");
+  } catch (error) {
+    console.error("LocalForage error:", error);
+    contacts = localStorage.getItem("contacts")
+      ? JSON.parse(localStorage.getItem("contacts"))
+      : [];
+  }
   let contact = contacts.find((contact) => contact.id === id);
   return contact ?? null;
 }
 
 export async function updateContact(id, updates) {
   await fakeNetwork();
-  let contacts = await localforage.getItem("contacts");
+  let contacts;
+  try {
+    contacts = await localforage.getItem("contacts");
+  } catch (error) {
+    console.error("LocalForage error:", error);
+    contacts = localStorage.getItem("contacts")
+      ? JSON.parse(localStorage.getItem("contacts"))
+      : [];
+  }
   let contact = contacts.find((contact) => contact.id === id);
   if (!contact) throw new Error("No contact found for", id);
   Object.assign(contact, updates);
@@ -40,7 +64,15 @@ export async function updateContact(id, updates) {
 }
 
 export async function deleteContact(id) {
-  let contacts = await localforage.getItem("contacts");
+  let contacts;
+  try {
+    contacts = await localforage.getItem("contacts");
+  } catch (error) {
+    console.error("LocalForage error:", error);
+    contacts = localStorage.getItem("contacts")
+      ? JSON.parse(localStorage.getItem("contacts"))
+      : [];
+  }
   let index = contacts.findIndex((contact) => contact.id === id);
   if (index > -1) {
     contacts.splice(index, 1);
